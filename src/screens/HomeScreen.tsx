@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,33 +6,23 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import axios, { AxiosResponse } from 'axios';
 import CompetitionCard from '../components/CompetitionCard';
-import { Competition, CompetitionsResponse } from './entities';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../store';
+import { fetchCompetitionsThunk } from '../store/competitions';
 
 const HomeScreen: React.FC = () => {
-  const [data, setData] = useState<Competition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchCompetitions = async () => {
-    try {
-      const response: AxiosResponse<CompetitionsResponse> = await axios.get(
-        'https://api.football-data.org/v4/competitions/',
-      );
-      setData(response.data.competitions || []);
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to fetch competitions');
-      setLoading(false);
-    }
-  };
+  const dispatch = useDispatch<AppDispatch>();
+  const { data, isLoading, isError } = useSelector(
+    (state: RootState) => state.competitions,
+  );
 
   useEffect(() => {
-    fetchCompetitions();
-  }, []);
+    dispatch(fetchCompetitionsThunk());
+    console.log('.....');
+  }, [dispatch]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -40,10 +30,10 @@ const HomeScreen: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{isError}</Text>
       </View>
     );
   }
